@@ -212,7 +212,7 @@ void spawn_piece() {
     }
 }
 
-int SDL_main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     if (!init()) return 1;
 
     srand(time(0));
