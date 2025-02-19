@@ -29,6 +29,7 @@ typedef struct {
 
 Piece current;
 
+bool game_over = false;
 bool quit = false;
 int score = 0;
 
@@ -126,6 +127,28 @@ void render() {
     snprintf(score_text, sizeof(score_text), "Score: %d", score);
     render_text(score_text, 10, 10);  // Position at top-left
 
+    if (game_over) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200);
+        SDL_Rect overlay = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+        SDL_RenderFillRect(renderer, &overlay);
+
+        int text_w, text_h, x_position, y_position;
+        const int line_spacing = 50;
+
+        const char game_over_text[10] = "Game Over";
+        TTF_SizeText(font, game_over_text, &text_w, &text_h);
+        x_position = (SCREEN_WIDTH - text_w)/2;
+        y_position = (SCREEN_HEIGHT/2) - line_spacing;
+
+        render_text(game_over_text, x_position, y_position);
+
+        TTF_SizeText(font, score_text, &text_w, &text_h);
+        x_position = (SCREEN_WIDTH - text_w)/2;
+        y_position = SCREEN_HEIGHT/2;
+
+        render_text(score_text, x_position, y_position);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -208,7 +231,19 @@ void spawn_piece() {
 
     if (check_collision(current)) {
         printf("Game Over!\nScore: %d\n", score);
-        quit = true;
+        game_over = true;
+    }
+}
+
+void reset() {
+    game_over = false;
+    score = 0;
+    
+    // Clear playfield
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            playfield[y][x] = 0;
+        }
     }
 }
 
@@ -225,29 +260,38 @@ int main(int argc, char* argv[]) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) quit = true;
 
-            if (e.type == SDL_KEYDOWN) {
-                Piece tmp = current;
-                switch (e.key.keysym.sym) {
-                    case SDLK_LEFT:  tmp.x--; break;
-                    case SDLK_RIGHT: tmp.x++; break;
-                    case SDLK_DOWN:  tmp.y++; break;
-                    case SDLK_UP:    tmp.rotation = (tmp.rotation + 1) % 4; break;
-                    case SDLK_SPACE:
-                        while (!check_collision(tmp)) {
-                            current = tmp;
-                            tmp.y++;
-                        }
-                        break;
-                    case SDLK_ESCAPE: quit = true; break;
+            if (!game_over) {
+                if (e.type == SDL_KEYDOWN) {
+                    Piece tmp = current;
+                    switch (e.key.keysym.sym) {
+                        case SDLK_LEFT:  tmp.x--; break;
+                        case SDLK_RIGHT: tmp.x++; break;
+                        case SDLK_DOWN:  tmp.y++; break;
+                        case SDLK_UP:    tmp.rotation = (tmp.rotation + 1) % 4; break;
+                        case SDLK_SPACE:
+                            while (!check_collision(tmp)) {
+                                current = tmp;
+                                tmp.y++;
+                            }
+                            break;
+                        case SDLK_ESCAPE: quit = true; break;
+                    }
+                    if (!check_collision(tmp)) current = tmp;
+                    else if (e.key.keysym.sym == SDLK_SPACE) {
+                        merge_piece();
+                        clear_lines();
+                        spawn_piece();
+                    }
                 }
-                if (!check_collision(tmp)) current = tmp;
-                else if (e.key.keysym.sym == SDLK_SPACE) {
-                    merge_piece();
-                    clear_lines();
-                    spawn_piece();
+            } else if (game_over && e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_ESCAPE: quit = true; break;
+                    case SDLK_SPACE: reset(); break;
                 }
             }
         }
+
+        if (game_over) continue;
 
         // Auto-drop every 500ms
         if (SDL_GetTicks64() - last_update > 500) {
