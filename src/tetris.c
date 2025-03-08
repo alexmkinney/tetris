@@ -29,6 +29,8 @@ typedef struct {
 
 Piece current;
 
+int last_type = -1;
+
 bool game_over = false;
 bool quit = false;
 int score = 0;
@@ -225,6 +227,13 @@ int clear_lines() {
 
 void spawn_piece() {
     current.type = rand() % 7;
+
+    // Duplicate detection
+    if (current.type == last_type) {
+        current.type = rand() % 7;
+    }
+    last_type = current.type;
+
     current.rotation = 0;
     current.x = WIDTH / 2 - 2; // Middle of playfield
     current.y = 0;
