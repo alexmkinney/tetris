@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "../include/tetromino.h"
+#include "tetromino.h"
 
 // Tetromino shapes [type][rotation][y][x]
 const int shapes[7][4][4][4] = {
