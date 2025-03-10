@@ -107,6 +107,22 @@ void spawn_piece() {
     }
 }
 
+void drop_piece(Uint64* last_update) {
+    if (SDL_GetTicks64() - *last_update > drop_interval && !game_over) {
+        *last_update = SDL_GetTicks64();
+        Piece tmp = current;
+        tmp.y++; // Try to drop piece one unit, but don't commit before checking collision
+
+        if (check_collision(tmp)) {
+            merge_piece();
+            clear_lines();
+            spawn_piece();
+        } else {
+            current = tmp; // If no collisions, current piece is allowed to drop
+        }
+    }
+}
+
 void reset() {
     game_over = false;
     score = 0;
