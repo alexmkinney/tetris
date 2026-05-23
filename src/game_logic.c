@@ -1,6 +1,5 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include "tetris.h"
 #include "tetromino.h"
@@ -102,7 +101,6 @@ void spawn_piece() {
     current.y = 0;
 
     if (check_collision(current)) {
-        printf("Game Over!\nScore: %d\n", score);
         game_over = true;
     }
 }
