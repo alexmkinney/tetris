@@ -14,32 +14,37 @@ SDL_Color text_color = {255, 255, 255, 255};
 
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! Error: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+            "SDL could not initialize! %s", SDL_GetError());
         return false;
     }
 
     window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window) {
-        printf("Window could not be created! Error: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
+            "Window could not be created! %s", SDL_GetError());
         return false;
     }
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) {
-        printf("Renderer could not be created! Error: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_RENDER,
+            "Renderer could not be created! %s", SDL_GetError());
         return false;
     }
 
     if (TTF_Init() == -1) {
-        printf("TTF_Init failed: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+            "TTF_Init failed: %s", TTF_GetError());
         return false;
     }
 
     SDL_RWops* font_rw = SDL_RWFromConstMem(minimal_ttf, minimal_ttf_len);
     font = TTF_OpenFontRW(font_rw, 1, 24);  // '1' = auto-close RWops
     if (!font) {
-        printf("Failed to load embedded font: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+            "Failed to load embedded font: %s", TTF_GetError());
         return false;
     }
 
@@ -103,7 +108,7 @@ void render() {
 
     // Render score
     char score_text[32];
-    snprintf(score_text, sizeof(score_text), "Score: %d", score);
+    SDL_snprintf(score_text, sizeof(score_text), "Score: %d", score);
     render_text(score_text, 10, 10);  // Position at top-left
 
     if (game_over) {
